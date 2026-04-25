@@ -9,6 +9,7 @@ from datetime import datetime
 #  CONFIGURAÇÕES — edite aqui antes de subir
 # ─────────────────────────────────────────────
 TOKEN = os.environ.get("DISCORD_TOKEN", "SEU_TOKEN_AQUI")
+print(f"[DEBUG] DISCORD_TOKEN definido: {bool(TOKEN and TOKEN != 'SEU_TOKEN_AQUI')} | tamanho: {len(TOKEN)}")
 
 # ID do canal onde a tabela será exibida/atualizada
 TABELA_CANAL_ID = int(os.environ.get("TABELA_CANAL_ID", "0"))
