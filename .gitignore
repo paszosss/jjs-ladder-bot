@@ -1,0 +1,5 @@
+.env
+tabela_msg_id.txt
+dados.json
+__pycache__/
+*.pyc
