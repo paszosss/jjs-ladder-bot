@@ -527,7 +527,9 @@ async def cmd_ajuda(interaction: discord.Interaction):
 # ─────────────────────────────────────────────
 @bot.event
 async def on_ready():
-    await tree.sync()
+    guild = discord.Object(id=1493320636888776824)
+    tree.copy_global_to(guild=guild)
+    await tree.sync(guild=guild)
     print(f"✅ Bot online como {bot.user}")
     print(f"   Canal da tabela: {TABELA_CANAL_ID}")
     # Atualiza a tabela ao iniciar
