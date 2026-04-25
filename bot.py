@@ -15,9 +15,6 @@ TOKEN = os.environ.get("DISCORD_TOKEN", "SEU_TOKEN_AQUI")
 # ID do canal onde a tabela será exibida/atualizada
 TABELA_CANAL_ID = int(os.environ.get("TABELA_CANAL_ID", "0"))
 
-# ID da mensagem fixada da tabela (preenchido automaticamente na 1ª vez)
-TABELA_MSG_ID_FILE = "tabela_msg_id.txt"
-
 # Arquivo onde os dados ficam salvos
 DATA_FILE = "dados.json"
 
@@ -51,10 +48,14 @@ def carregar_dados():
     """Carrega os dados do arquivo JSON."""
     if not os.path.exists(DATA_FILE):
         dados = {str(g): [] for g in GRUPOS}
+        dados["_tabela_msg_id"] = None
         salvar_dados(dados)
         return dados
     with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+        dados = json.load(f)
+    if "_tabela_msg_id" not in dados:
+        dados["_tabela_msg_id"] = None
+    return dados
 
 
 def salvar_dados(dados):
@@ -149,13 +150,7 @@ async def atualizar_tabela_canal(dados):
 
     conteudo = gerar_tabela(dados)
 
-    # Tenta carregar o ID da mensagem já existente
-    msg_id = None
-    if os.path.exists(TABELA_MSG_ID_FILE):
-        with open(TABELA_MSG_ID_FILE) as f:
-            txt = f.read().strip()
-            if txt.isdigit():
-                msg_id = int(txt)
+    msg_id = dados.get("_tabela_msg_id")
 
     try:
         if msg_id:
@@ -164,10 +159,10 @@ async def atualizar_tabela_canal(dados):
         else:
             raise Exception("sem mensagem")
     except Exception:
-        # Cria mensagem nova e salva o ID
+        # Cria mensagem nova e salva o ID no dados.json
         msg = await canal.send(conteudo)
-        with open(TABELA_MSG_ID_FILE, "w") as f:
-            f.write(str(msg.id))
+        dados["_tabela_msg_id"] = msg.id
+        salvar_dados(dados)
         try:
             await msg.pin()
         except Exception:
