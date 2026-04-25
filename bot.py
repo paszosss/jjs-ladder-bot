@@ -9,7 +9,7 @@ from datetime import datetime
 #  CONFIGURAÇÕES — edite aqui antes de subir
 # ─────────────────────────────────────────────
 TOKEN = os.environ.get("DISCORD_TOKEN", "SEU_TOKEN_AQUI")
-print(f"[DEBUG] Vars com DISCORD: {[k for k in os.environ if 'DISCORD' in k.upper()]}")
+print(f"[DEBUG] Todas as vars: {list(os.environ.keys())}")
 print(f"[DEBUG] DISCORD_TOKEN tamanho: {len(TOKEN)} | primeiros 4 chars: {TOKEN[:4]}")
 
 # ID do canal onde a tabela será exibida/atualizada
