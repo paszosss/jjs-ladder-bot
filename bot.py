@@ -196,25 +196,26 @@ async def cmd_adicionar(
     grupo: int,
     posicao: int = None
 ):
+    await interaction.response.defer()
     if not eh_admin(interaction):
-        await interaction.response.send_message("❌ Apenas admins podem usar este comando.", ephemeral=True)
+        await interaction.followup.send("❌ Apenas admins podem usar este comando.", ephemeral=True)
         return
 
     if grupo not in GRUPOS:
-        await interaction.response.send_message("❌ Grupo inválido. Use 0, 1, 2, 3 ou 4.", ephemeral=True)
+        await interaction.followup.send("❌ Grupo inválido. Use 0, 1, 2, 3 ou 4.", ephemeral=True)
         return
 
     dados = carregar_dados()
     existe, _, _ = jogador_existe(dados, jogador.id)
     if existe:
-        await interaction.response.send_message(f"❌ {jogador.display_name} já está no torneio.", ephemeral=True)
+        await interaction.followup.send(f"❌ {jogador.display_name} já está no torneio.", ephemeral=True)
         return
 
     lista = dados[str(grupo)]
     max_grupo = GRUPOS[grupo]["max"]
 
     if len(lista) >= max_grupo:
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"❌ Grupo {grupo} está cheio ({max_grupo}/{max_grupo}).", ephemeral=True
         )
         return
@@ -237,7 +238,7 @@ async def cmd_adicionar(
     await atualizar_tabela_canal(dados)
 
     pos_final = lista.index(novo) + 1
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"✅ **{jogador.display_name}** adicionado ao **{GRUPOS[grupo]['nome']}** na posição **{pos_final}º**!"
     )
 
@@ -247,15 +248,16 @@ async def cmd_adicionar(
 # ─────────────────────────────────────────────
 @tree.command(name="entrar", description="Entre no torneio! Você começa no último lugar do Grupo 4.")
 async def cmd_entrar(interaction: discord.Interaction):
+    await interaction.response.defer()
     dados = carregar_dados()
     existe, _, _ = jogador_existe(dados, interaction.user.id)
     if existe:
-        await interaction.response.send_message("❌ Você já está no torneio!", ephemeral=True)
+        await interaction.followup.send("❌ Você já está no torneio!", ephemeral=True)
         return
 
     lista = dados["4"]
     if len(lista) >= GRUPOS[4]["max"]:
-        await interaction.response.send_message(
+        await interaction.followup.send(
             "❌ O Grupo 4 está cheio no momento. Aguarde uma vaga ou contate um admin.", ephemeral=True
         )
         return
@@ -273,7 +275,7 @@ async def cmd_entrar(interaction: discord.Interaction):
     await atualizar_tabela_canal(dados)
 
     pos = len(lista)
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"✅ **{interaction.user.display_name}** entrou no torneio! "
         f"Você está em **{pos}º lugar** no **{GRUPOS[4]['nome']}**. Bora subir! 🔥"
     )
@@ -292,8 +294,9 @@ async def cmd_resultado(
     vencedor: discord.Member,
     perdedor: discord.Member
 ):
+    await interaction.response.defer()
     if not eh_admin(interaction):
-        await interaction.response.send_message("❌ Apenas admins podem registrar resultados.", ephemeral=True)
+        await interaction.followup.send("❌ Apenas admins podem registrar resultados.", ephemeral=True)
         return
 
     dados = carregar_dados()
@@ -302,10 +305,10 @@ async def cmd_resultado(
     g_p, pos_p, dados_p = encontrar_jogador(dados, perdedor.id)
 
     if g_v is None:
-        await interaction.response.send_message(f"❌ {vencedor.display_name} não está no torneio.", ephemeral=True)
+        await interaction.followup.send(f"❌ {vencedor.display_name} não está no torneio.", ephemeral=True)
         return
     if g_p is None:
-        await interaction.response.send_message(f"❌ {perdedor.display_name} não está no torneio.", ephemeral=True)
+        await interaction.followup.send(f"❌ {perdedor.display_name} não está no torneio.", ephemeral=True)
         return
 
     # Atualiza estatísticas
@@ -344,7 +347,7 @@ async def cmd_resultado(
 
     salvar_dados(dados)
     await atualizar_tabela_canal(dados)
-    await interaction.response.send_message("\n".join(mensagens))
+    await interaction.followup.send("\n".join(mensagens))
 
 
 # ─────────────────────────────────────────────
@@ -353,19 +356,20 @@ async def cmd_resultado(
 @tree.command(name="subir", description="[Admin] Promove um jogador para a divisão acima")
 @app_commands.describe(jogador="O jogador que vai subir de divisão (@jogador)")
 async def cmd_subir(interaction: discord.Interaction, jogador: discord.Member):
+    await interaction.response.defer()
     if not eh_admin(interaction):
-        await interaction.response.send_message("❌ Apenas admins podem usar este comando.", ephemeral=True)
+        await interaction.followup.send("❌ Apenas admins podem usar este comando.", ephemeral=True)
         return
 
     dados = carregar_dados()
     grupo, pos, dados_j = encontrar_jogador(dados, jogador.id)
 
     if grupo is None:
-        await interaction.response.send_message(f"❌ {jogador.display_name} não está no torneio.", ephemeral=True)
+        await interaction.followup.send(f"❌ {jogador.display_name} não está no torneio.", ephemeral=True)
         return
 
     if grupo == 0:
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"❌ {jogador.display_name} já está no grupo mais alto (Elite).", ephemeral=True
         )
         return
@@ -376,15 +380,14 @@ async def cmd_subir(interaction: discord.Interaction, jogador: discord.Member):
     max_novo = GRUPOS[novo_grupo]["max"]
 
     if len(lista_nova) >= max_novo:
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"❌ O {GRUPOS[novo_grupo]['nome']} está cheio ({max_novo}/{max_novo}). "
             f"Remova alguém antes de promover.", ephemeral=True
         )
         return
 
-    # Remove da divisão atual e coloca no último lugar da divisão acima
     lista_atual.pop(pos)
-    dados_j["sequencia"] = 0  # reset sequência ao subir
+    dados_j["sequencia"] = 0
     lista_nova.append(dados_j)
 
     dados[str(grupo)] = lista_atual
@@ -393,7 +396,7 @@ async def cmd_subir(interaction: discord.Interaction, jogador: discord.Member):
     await atualizar_tabela_canal(dados)
 
     pos_nova = len(lista_nova)
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"🎉 **{jogador.display_name}** subiu do **{GRUPOS[grupo]['nome']}** "
         f"para o **{GRUPOS[novo_grupo]['nome']}**!\n"
         f"Posição: **{pos_nova}º lugar** (último da nova divisão). Boa sorte! 💪"
@@ -406,22 +409,23 @@ async def cmd_subir(interaction: discord.Interaction, jogador: discord.Member):
 @tree.command(name="remover", description="[Admin] Remove um jogador do torneio")
 @app_commands.describe(jogador="O jogador a ser removido (@jogador)")
 async def cmd_remover(interaction: discord.Interaction, jogador: discord.Member):
+    await interaction.response.defer()
     if not eh_admin(interaction):
-        await interaction.response.send_message("❌ Apenas admins podem usar este comando.", ephemeral=True)
+        await interaction.followup.send("❌ Apenas admins podem usar este comando.", ephemeral=True)
         return
 
     dados = carregar_dados()
     grupo, pos, _ = encontrar_jogador(dados, jogador.id)
 
     if grupo is None:
-        await interaction.response.send_message(f"❌ {jogador.display_name} não está no torneio.", ephemeral=True)
+        await interaction.followup.send(f"❌ {jogador.display_name} não está no torneio.", ephemeral=True)
         return
 
     dados[str(grupo)].pop(pos)
     salvar_dados(dados)
     await atualizar_tabela_canal(dados)
 
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"🗑️ **{jogador.display_name}** foi removido do **{GRUPOS[grupo]['nome']}**."
     )
 
@@ -431,13 +435,13 @@ async def cmd_remover(interaction: discord.Interaction, jogador: discord.Member)
 # ─────────────────────────────────────────────
 @tree.command(name="tabela", description="Mostra a tabela atual do torneio")
 async def cmd_tabela(interaction: discord.Interaction):
+    await interaction.response.defer()
     dados = carregar_dados()
     conteudo = gerar_tabela(dados)
-    # Discord tem limite de 2000 chars por mensagem
     if len(conteudo) > 1900:
-        await interaction.response.send_message("📊 Tabela atualizada no canal fixado!", ephemeral=True)
+        await interaction.followup.send("📊 Tabela atualizada no canal fixado!", ephemeral=True)
     else:
-        await interaction.response.send_message(conteudo)
+        await interaction.followup.send(conteudo)
 
 
 # ─────────────────────────────────────────────
@@ -446,12 +450,13 @@ async def cmd_tabela(interaction: discord.Interaction):
 @tree.command(name="perfil", description="Veja as estatísticas de um jogador")
 @app_commands.describe(jogador="Deixe em branco para ver o seu próprio perfil")
 async def cmd_perfil(interaction: discord.Interaction, jogador: discord.Member = None):
+    await interaction.response.defer()
     alvo = jogador or interaction.user
     dados = carregar_dados()
     grupo, pos, dados_j = encontrar_jogador(dados, alvo.id)
 
     if grupo is None:
-        await interaction.response.send_message(f"❌ {alvo.display_name} não está no torneio.", ephemeral=True)
+        await interaction.followup.send(f"❌ {alvo.display_name} não está no torneio.", ephemeral=True)
         return
 
     v = dados_j.get("vitorias", 0)
@@ -474,7 +479,7 @@ async def cmd_perfil(interaction: discord.Interaction, jogador: discord.Member =
     if seq >= 3:
         embed.set_footer(text="🔥 Pode desafiar qualquer jogador da divisão!")
 
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 
 # ─────────────────────────────────────────────
@@ -482,6 +487,7 @@ async def cmd_perfil(interaction: discord.Interaction, jogador: discord.Member =
 # ─────────────────────────────────────────────
 @tree.command(name="ajuda", description="Lista todos os comandos do bot")
 async def cmd_ajuda(interaction: discord.Interaction):
+    await interaction.response.defer()
     embed = discord.Embed(title="📋 Comandos do Ladder Bot", color=0x5865F2)
 
     embed.add_field(
@@ -514,7 +520,7 @@ async def cmd_ajuda(interaction: discord.Interaction):
         inline=False
     )
 
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 
 # ─────────────────────────────────────────────
