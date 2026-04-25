@@ -4,6 +4,8 @@ from discord import app_commands
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
+load_dotenv()
 
 # ─────────────────────────────────────────────
 #  CONFIGURAÇÕES — edite aqui antes de subir
